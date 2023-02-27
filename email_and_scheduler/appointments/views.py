@@ -19,4 +19,11 @@ class AppointmentView(View):
         )
         appointment.save()
 
+        send_mail(
+            subject=f'{appointment.client_name} {appointment.date.strftime("%Y-%m-%d")}',
+            message=appointment.message,
+            from_email='ilya.mikhassik@yandex.ru',
+            recipient_list=['imikhassik@gmail.com']
+        )
+
         return redirect('appointments:make_appointment')
