@@ -1,10 +1,27 @@
-from django.shortcuts import render, reverse, redirect
-from django.views import View
-from django.core.mail import mail_admins
 from datetime import datetime
 
-from django.template.loader import render_to_string
+from django.shortcuts import render, redirect
+from django.views import View
+from django.core.mail import mail_managers
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 from .models import Appointment
+
+
+def notify_managers_appointment(sender, instance, created, **kwargs):
+    if created:
+        subject = f'{instance.client_name} {instance.date.strftime("%d %m %Y")}'
+    else:
+        subject = f'Appointment changed for {instance.client_name} {instance.date.strftime("%d %m %Y")}'
+
+    mail_managers(
+        subject=subject,
+        message=instance.message,
+    )
+
+
+post_save.connect(notify_managers_appointment, sender=Appointment)
 
 
 class AppointmentView(View):
@@ -19,10 +36,5 @@ class AppointmentView(View):
             message=request.POST['message'],
         )
         appointment.save()
-
-        mail_admins(
-            subject=f'{appointment.client_name} {appointment.date.strftime("%d %m %Y")}',
-            message=appointment.message,
-        )
 
         return redirect('appointments:make_appointment')
