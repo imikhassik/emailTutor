@@ -9,21 +9,6 @@ from django.dispatch import receiver
 from .models import Appointment
 
 
-def notify_managers_appointment(sender, instance, created, **kwargs):
-    if created:
-        subject = f'{instance.client_name} {instance.date.strftime("%d %m %Y")}'
-    else:
-        subject = f'Appointment changed for {instance.client_name} {instance.date.strftime("%d %m %Y")}'
-
-    mail_managers(
-        subject=subject,
-        message=instance.message,
-    )
-
-
-post_save.connect(notify_managers_appointment, sender=Appointment)
-
-
 class AppointmentView(View):
 
     def get(self, request, *args, **kwargs):
